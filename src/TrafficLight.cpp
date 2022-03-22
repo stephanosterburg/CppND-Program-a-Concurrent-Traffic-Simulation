@@ -26,7 +26,7 @@ void MessageQueue<T>::send(T &&msg) {
 	// clearing queue to get better performance
 	// see https://knowledge.udacity.com/questions/586056
 	_queue.clear();
-	_queue.push_back(std::move(msg));
+	_queue.emplace_back(std::move(msg));
 	_condition.notify_one();
 }
 
@@ -62,11 +62,17 @@ void TrafficLight::cycleThroughPhases() {
 	// and toggles the current phase of the traffic light between red and green and sends an update method
 	// to the message queue using move semantics. The cycle duration should be a random value between 4 and 6 seconds.
 	// Also, the while-loop should use std::this_thread::sleep_for to wait 1ms between two cycles.
+
+	// Declare vars outside any loop for good practice, In some cases, there will be a consideration such as
+	// performance that justifies pulling the variable out of the loop.
 	std::chrono::time_point<std::chrono::system_clock> t_start, t_end;
+	long duration;
+
 	t_start = std::chrono::system_clock::now();
 
 	// Making the random numbers different after every execution
 	// https://www.bitdegree.org/learn/random-number-generator-cpp
+	// TODO: replace with std::mt19937
 	srand((unsigned)time(0));
 	int cycle_duration = (rand() % 3) + 4;
 
@@ -76,12 +82,13 @@ void TrafficLight::cycleThroughPhases() {
 		// check if time gap reached cycle duration
 		t_end = std::chrono::system_clock::now();
 		// convert t_time to double --> https://stackoverflow.com/a/50495821/5983691
-		auto duration =
+		duration =
 				std::chrono::system_clock::to_time_t(std::chrono::system_clock::time_point(std::chrono::duration_cast<std::chrono::seconds>(
 						std::chrono::duration<double>(t_end - t_start))));
 		if (duration >= cycle_duration) {
 			this->_currentPhase = (this->_currentPhase == red) ? green : red;
 			// toggle & send updates
+			// TODO: we can send directly here --> _trafficMessages.send(std::move(_currentPhase));
 			auto futures =
 					std::async(std::launch::async, &MessageQueue<TrafficLightPhase>::send, &_queue, std::move(_currentPhase));
 			futures.wait();
