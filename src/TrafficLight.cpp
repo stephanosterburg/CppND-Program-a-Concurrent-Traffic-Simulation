@@ -3,6 +3,15 @@
 #include <future>
 #include "TrafficLight.h"
 
+// https://cppbyexample.com/random_int.html
+static std::mt19937 mersenneEngine(std::random_device{}());
+
+template<typename T>
+T uniform_random_real(T a, T b) {
+	std::uniform_real_distribution<T> dist(a, b);
+	return dist(mersenneEngine);
+}
+
 /* Implementation of class "MessageQueue" */
 
 template<typename T>
@@ -73,6 +82,8 @@ void TrafficLight::cycleThroughPhases() {
 	// Making the random numbers different after every execution
 	// https://www.bitdegree.org/learn/random-number-generator-cpp
 	// TODO: replace with std::mt19937
+	//  https://cppbyexample.com/random_int.html
+	//  double cycle_duration = uniform_random_real<double>(4, 6);
 	srand((unsigned)time(0));
 	int cycle_duration = (rand() % 3) + 4;
 
